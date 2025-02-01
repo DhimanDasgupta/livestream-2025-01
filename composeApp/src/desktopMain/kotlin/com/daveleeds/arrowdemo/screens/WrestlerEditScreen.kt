@@ -47,7 +47,10 @@ fun WrestlerEditScreen(
                 .fillMaxWidth()
                 .verticalScroll(scrollState),
         ) {
-            uiState.exception?.let { e -> Text("Error: ${e.message}", color = colorScheme.error) }
+            uiState.exception?.let { e ->
+                Text("Error: ${e.message}", color = colorScheme.error)
+                return
+            }
 
             Text(
                 text = "Want to edit ${uiState.wrestler.name}?",
