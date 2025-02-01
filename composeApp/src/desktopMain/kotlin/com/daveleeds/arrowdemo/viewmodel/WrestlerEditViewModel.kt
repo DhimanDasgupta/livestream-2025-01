@@ -39,18 +39,20 @@ class WrestlerEditViewModel(
             WrestlerEditUiState.status set LOADING
         }
 
-        try {
-            val wrestler = repository.fetchWrestler(id)
-            _uiState.updateCopy {
-                WrestlerEditUiState.status set LOADED
-                WrestlerEditUiState.wrestler set wrestler
-                WrestlerEditUiState.exception set null
-            }
-        } catch (e: Exception) {
-            _uiState.updateCopy {
-                WrestlerEditUiState.status set ERROR
-                WrestlerEditUiState.exception set e
-            }
+        val wrestler = catch { repository.fetchWrestler(id) }
+
+        _uiState.updateCopy {
+            wrestler.fold(
+                ifLeft = { e ->
+                    WrestlerEditUiState.status set ERROR
+                    WrestlerEditUiState.exception set e
+                },
+                ifRight = { wrestler ->
+                    WrestlerEditUiState.status set LOADED
+                    WrestlerEditUiState.wrestler set wrestler
+                    WrestlerEditUiState.exception set null
+                }
+            )
         }
     }
 

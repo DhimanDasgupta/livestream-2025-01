@@ -2,6 +2,9 @@ package com.daveleeds.arrowdemo.screens
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement.Absolute.spacedBy
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.MaterialTheme.typography
@@ -12,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.daveleeds.arrowdemo.Wrestler
+import com.daveleeds.arrowdemo.viewmodel.WrestlerEditStatus
 import com.daveleeds.arrowdemo.viewmodel.WrestlerEditUiState
 
 @Composable
@@ -25,10 +29,26 @@ fun WrestlerEditScreen(
     onSaved: (Wrestler) -> Unit,
     onBack: () -> Unit
 ) {
+    if (uiState.status in listOf(WrestlerEditStatus.LOADING, WrestlerEditStatus.SAVING)) {
+        Box(
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxSize()
+        ) {
+            CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+        }
+        return
+    }
+
+    val scrollState = rememberScrollState()
+
     Column(
         verticalArrangement = spacedBy(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.padding(16.dp).fillMaxWidth()
+        modifier = Modifier
+            .padding(16.dp)
+            .fillMaxWidth()
+            .verticalScroll(scrollState),
     ) {
         uiState.exception?.let { e -> Text("Error: ${e.message}", color = colorScheme.error) }
 
@@ -38,27 +58,27 @@ fun WrestlerEditScreen(
         )
 
         TextField(
-            value = uiState.wrestler.name.orEmpty(),
+            value = uiState.wrestler.name,
             onValueChange = { name -> onSetName(name) },
             label = { Text("Name") }
         )
         TextField(
-            value = uiState.wrestler.age.toString().orEmpty(),
+            value = uiState.wrestler.age.toString(),
             onValueChange = { age -> age.toIntOrNull()?.let { onSetAge(it) } },
             label = { Text("Age") }
         )
         TextField(
-            value = uiState.wrestler.weight.toString().orEmpty(),
+            value = uiState.wrestler.weight.toString(),
             onValueChange = { weight -> weight.toIntOrNull()?.let { onSetWeight(it) } },
             label = { Text("Weight") }
         )
         TextField(
-            value = uiState.wrestler.hometown.city.orEmpty(),
+            value = uiState.wrestler.hometown.city,
             onValueChange = { city -> onSetCity(city) },
             label = { Text("City") }
         )
         TextField(
-            value = uiState.wrestler.hometown.country.orEmpty(),
+            value = uiState.wrestler.hometown.country,
             onValueChange = { country -> onSetCountry(country) },
             label = { Text("Country") }
         )

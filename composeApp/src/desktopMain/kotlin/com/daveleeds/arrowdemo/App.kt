@@ -56,11 +56,6 @@ fun App(
                     val viewModel: WrestlerEditViewModel = viewModel { WrestlerEditViewModel(id = id) }
                     val uiState: WrestlerEditUiState by viewModel.uiState.collectAsState()
 
-                    if (uiState.status in listOf(WrestlerEditStatus.LOADING, WrestlerEditStatus.SAVING)) {
-                        CircularProgressIndicator(modifier = Modifier.wrapContentSize(align = Alignment.Center))
-                        return@composable
-                    }
-
                     WrestlerEditScreen(
                             uiState = uiState,
                             onSetName = { name -> viewModel.setName(name) },

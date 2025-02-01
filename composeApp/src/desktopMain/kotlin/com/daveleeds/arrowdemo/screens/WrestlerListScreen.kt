@@ -2,6 +2,7 @@ package com.daveleeds.arrowdemo.screens
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.MaterialTheme.typography
@@ -24,18 +25,24 @@ fun WrestlerList(
     onRetry: () -> Unit
 ) {
     Box(Modifier.padding(16.dp)) {
-        if (uiState.status == WrestlerListStatus.LOADING) {
-            CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-        } else {
-            Column {
-                uiState.exception?.let { e ->
-                    ErrorMessage(e.message, onTryAgain = { onRetry() })
-                }
-                uiState.wrestlers.forEach { wrestler ->
-                    WrestlerRow(
-                        wrestler = wrestler,
-                        onClick = { onWrestlerChosen(wrestler.id) }
-                    )
+        when (uiState.status) {
+            WrestlerListStatus.LOADING -> {
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+            }
+            WrestlerListStatus.ERROR -> {
+                ErrorMessage(uiState.exception?.message ?: "Something went wrong....", onTryAgain = { onRetry() })
+            }
+            else -> {
+                LazyColumn {
+                    items(
+                        count = uiState.wrestlers.size,
+                        key = { index -> uiState.wrestlers[index].id }
+                    ) { index ->
+                        WrestlerRow(
+                            wrestler = uiState.wrestlers[index],
+                            onClick = { onWrestlerChosen(uiState.wrestlers[index].id) }
+                        )
+                    }
                 }
             }
         }
@@ -43,7 +50,7 @@ fun WrestlerList(
 }
 
 @Composable
-fun ErrorMessage(message: String?, onTryAgain: () -> Unit) {
+private fun ErrorMessage(message: String?, onTryAgain: () -> Unit) {
     Row {
         Text("Error: $message", color = colorScheme.error)
         Spacer(Modifier.width(8.dp))
@@ -57,7 +64,7 @@ fun ErrorMessage(message: String?, onTryAgain: () -> Unit) {
 }
 
 @Composable
-fun WrestlerRow(wrestler: Wrestler, onClick: () -> Unit) {
+private fun WrestlerRow(wrestler: Wrestler, onClick: () -> Unit) {
     Row(modifier = Modifier.fillMaxWidth().padding(12.dp).clickable { onClick() }) {
         AsyncImage(
             model = "$IMAGE_URL/${wrestler.id}.png",
