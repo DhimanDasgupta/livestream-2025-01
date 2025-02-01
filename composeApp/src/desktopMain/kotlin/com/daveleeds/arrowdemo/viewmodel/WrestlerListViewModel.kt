@@ -9,9 +9,7 @@ import com.daveleeds.arrowdemo.data.WrestlerRepository
 import com.daveleeds.arrowdemo.viewmodel.WrestlerListStatus.*
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 data class WrestlerListUiState(
@@ -26,8 +24,13 @@ class WrestlerListViewModel(
     private val repository: WrestlerRepository = WrestlerRepository()
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(WrestlerListUiState())
-    val uiState = _uiState.asStateFlow()
-
+    val uiState = _uiState
+        .onStart { refresh() }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = _uiState.value
+        )
     fun refresh() {
         viewModelScope.launch {
             _uiState.update { it.copy(status = LOADING) }
