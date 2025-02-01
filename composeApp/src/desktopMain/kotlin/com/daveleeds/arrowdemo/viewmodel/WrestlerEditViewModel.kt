@@ -8,9 +8,7 @@ import arrow.optics.updateCopy
 import com.daveleeds.arrowdemo.*
 import com.daveleeds.arrowdemo.data.WrestlerRepository
 import com.daveleeds.arrowdemo.viewmodel.WrestlerEditStatus.*
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 @optics data class WrestlerEditUiState(
@@ -24,10 +22,17 @@ import kotlinx.coroutines.launch
 enum class WrestlerEditStatus { START, LOADING, LOADED, SAVING, SAVED, ERROR }
 
 class WrestlerEditViewModel(
+    private val id: Int,
     private val repository: WrestlerRepository = WrestlerRepository()
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(WrestlerEditUiState())
-    val uiState = _uiState.asStateFlow()
+    val uiState = _uiState
+        .onStart { load(id) }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = _uiState.value
+        )
 
     fun load(id: Int) = viewModelScope.launch {
         _uiState.updateCopy {
@@ -49,12 +54,12 @@ class WrestlerEditViewModel(
         }
     }
 
-    fun save() = viewModelScope.launch {
+    fun save(wrestler: Wrestler) = viewModelScope.launch {
         _uiState.updateCopy {
             WrestlerEditUiState.status set SAVING
         }
 
-        val result = catch { _uiState.value.wrestler.let { repository.saveWrestler(it) } }
+        val result = catch { _uiState.value.wrestler.let { repository.saveWrestler(wrestler) } }
 
         _uiState.update { state ->
             result.fold(

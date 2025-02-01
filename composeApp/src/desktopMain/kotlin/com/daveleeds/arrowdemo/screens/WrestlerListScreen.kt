@@ -7,36 +7,29 @@ import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import com.daveleeds.arrowdemo.IMAGE_URL
 import com.daveleeds.arrowdemo.Wrestler
 import com.daveleeds.arrowdemo.viewmodel.WrestlerListStatus
-import com.daveleeds.arrowdemo.viewmodel.WrestlerListViewModel
+import com.daveleeds.arrowdemo.viewmodel.WrestlerListUiState
 
 @Composable
 fun WrestlerList(
-    viewModel: WrestlerListViewModel = viewModel { WrestlerListViewModel() },
-    onWrestlerChosen: (Int) -> Unit
+    uiState: WrestlerListUiState,
+    onWrestlerChosen: (Int) -> Unit,
+    onRetry: () -> Unit
 ) {
-    val uiState by viewModel.uiState.collectAsState()
-
-    LaunchedEffect(viewModel) { viewModel.refresh() }
-
     Box(Modifier.padding(16.dp)) {
         if (uiState.status == WrestlerListStatus.LOADING) {
             CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
         } else {
             Column {
                 uiState.exception?.let { e ->
-                    ErrorMessage(e.message, onTryAgain = { viewModel.refresh() })
+                    ErrorMessage(e.message, onTryAgain = { onRetry() })
                 }
                 uiState.wrestlers.forEach { wrestler ->
                     WrestlerRow(
