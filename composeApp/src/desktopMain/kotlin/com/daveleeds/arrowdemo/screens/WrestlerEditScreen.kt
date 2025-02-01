@@ -29,76 +29,74 @@ fun WrestlerEditScreen(
     onSaved: (Wrestler) -> Unit,
     onBack: () -> Unit
 ) {
-    if (uiState.status in listOf(WrestlerEditStatus.LOADING, WrestlerEditStatus.SAVING)) {
-        Box(
+    Box(
+        modifier = Modifier.padding(16.dp)
+    ) {
+        if (uiState.status in listOf(WrestlerEditStatus.LOADING, WrestlerEditStatus.SAVING)) {
+            CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+            return
+        }
+
+        val scrollState = rememberScrollState()
+
+        Column(
+            verticalArrangement = spacedBy(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier
                 .padding(16.dp)
-                .fillMaxSize()
+                .fillMaxWidth()
+                .verticalScroll(scrollState),
         ) {
-            CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-        }
-        return
-    }
+            uiState.exception?.let { e -> Text("Error: ${e.message}", color = colorScheme.error) }
 
-    val scrollState = rememberScrollState()
+            Text(
+                text = "Want to edit ${uiState.wrestler.name}?",
+                style = typography.headlineLarge
+            )
 
-    Column(
-        verticalArrangement = spacedBy(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier
-            .padding(16.dp)
-            .fillMaxWidth()
-            .verticalScroll(scrollState),
-    ) {
-        uiState.exception?.let { e -> Text("Error: ${e.message}", color = colorScheme.error) }
-
-        Text(
-            text = "Want to edit ${uiState.wrestler.name}?",
-            style = typography.headlineLarge
-        )
-
-        TextField(
-            value = uiState.wrestler.name,
-            onValueChange = { name -> onSetName(name) },
-            label = { Text("Name") }
-        )
-        TextField(
-            value = uiState.wrestler.age.toString(),
-            onValueChange = { age -> age.toIntOrNull()?.let { onSetAge(it) } },
-            label = { Text("Age") }
-        )
-        TextField(
-            value = uiState.wrestler.weight.toString(),
-            onValueChange = { weight -> weight.toIntOrNull()?.let { onSetWeight(it) } },
-            label = { Text("Weight") }
-        )
-        TextField(
-            value = uiState.wrestler.hometown.city,
-            onValueChange = { city -> onSetCity(city) },
-            label = { Text("City") }
-        )
-        TextField(
-            value = uiState.wrestler.hometown.country,
-            onValueChange = { country -> onSetCountry(country) },
-            label = { Text("Country") }
-        )
-        Row(
-            horizontalArrangement = Arrangement.SpaceBetween,
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Spacer(Modifier.weight(1f))
-            Button(
-                onClick = { onBack() },
-                modifier = Modifier.padding(12.dp)
+            TextField(
+                value = uiState.wrestler.name,
+                onValueChange = { name -> onSetName(name) },
+                label = { Text("Name") }
+            )
+            TextField(
+                value = uiState.wrestler.age.toString(),
+                onValueChange = { age -> age.toIntOrNull()?.let { onSetAge(it) } },
+                label = { Text("Age") }
+            )
+            TextField(
+                value = uiState.wrestler.weight.toString(),
+                onValueChange = { weight -> weight.toIntOrNull()?.let { onSetWeight(it) } },
+                label = { Text("Weight") }
+            )
+            TextField(
+                value = uiState.wrestler.hometown.city,
+                onValueChange = { city -> onSetCity(city) },
+                label = { Text("City") }
+            )
+            TextField(
+                value = uiState.wrestler.hometown.country,
+                onValueChange = { country -> onSetCountry(country) },
+                label = { Text("Country") }
+            )
+            Row(
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Don't Save")
-            }
-            Button(
-                onClick = { onSaved(uiState.wrestler) },
-                modifier = Modifier.padding(12.dp)
-            ) {
-                Text("Save")
+                Spacer(Modifier.weight(1f))
+                Button(
+                    onClick = { onBack() },
+                    modifier = Modifier.padding(12.dp)
+                ) {
+                    Text("Don't Save")
+                }
+                Button(
+                    onClick = { onSaved(uiState.wrestler) },
+                    modifier = Modifier.padding(12.dp)
+                ) {
+                    Text("Save")
+                }
             }
         }
     }

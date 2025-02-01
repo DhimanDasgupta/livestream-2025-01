@@ -11,7 +11,8 @@ import com.daveleeds.arrowdemo.viewmodel.WrestlerEditStatus.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
-@optics data class WrestlerEditUiState(
+@optics
+data class WrestlerEditUiState(
     val wrestler: Wrestler = Wrestler(-1, "", -1, -1, Hometown("", "")),
     val exception: Throwable? = null,
     val status: WrestlerEditStatus = START
@@ -33,28 +34,6 @@ class WrestlerEditViewModel(
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = _uiState.value
         )
-
-    fun load(id: Int) = viewModelScope.launch {
-        _uiState.updateCopy {
-            WrestlerEditUiState.status set LOADING
-        }
-
-        val wrestler = catch { repository.fetchWrestler(id) }
-
-        _uiState.updateCopy {
-            wrestler.fold(
-                ifLeft = { e ->
-                    WrestlerEditUiState.status set ERROR
-                    WrestlerEditUiState.exception set e
-                },
-                ifRight = { wrestler ->
-                    WrestlerEditUiState.status set LOADED
-                    WrestlerEditUiState.wrestler set wrestler
-                    WrestlerEditUiState.exception set null
-                }
-            )
-        }
-    }
 
     fun save(wrestler: Wrestler) = viewModelScope.launch {
         _uiState.updateCopy {
@@ -89,5 +68,27 @@ class WrestlerEditViewModel(
 
     fun setCountry(country: String) = _uiState.updateCopy {
         WrestlerEditUiState.wrestler.hometown.country set country
+    }
+
+    private fun load(id: Int) = viewModelScope.launch {
+        _uiState.updateCopy {
+            WrestlerEditUiState.status set LOADING
+        }
+
+        val wrestler = catch { repository.fetchWrestler(id) }
+
+        _uiState.updateCopy {
+            wrestler.fold(
+                ifLeft = { e ->
+                    WrestlerEditUiState.status set ERROR
+                    WrestlerEditUiState.exception set e
+                },
+                ifRight = { wrestler ->
+                    WrestlerEditUiState.status set LOADED
+                    WrestlerEditUiState.wrestler set wrestler
+                    WrestlerEditUiState.exception set null
+                }
+            )
+        }
     }
 }
